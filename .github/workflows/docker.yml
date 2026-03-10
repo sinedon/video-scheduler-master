@@ -35,3 +35,6 @@ jobs:
 
       - name: Push Docker Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/video-scheduler
+
+      - name: Trigger Render Deploy
+        run: curl ${{ secrets.DEPLOY_HOOK }}
