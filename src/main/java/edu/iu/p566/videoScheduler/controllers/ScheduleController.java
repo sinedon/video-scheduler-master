@@ -47,8 +47,9 @@ public class ScheduleController {
         String username = principal.getName();
 
         Optional<Schedule> dueVideo =
-            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
+            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeAfterOrderBySchedTimeAsc(
                 username,
+                Instant.now(),
                 Instant.now()
             );
 
@@ -92,12 +93,12 @@ public class ScheduleController {
 
         schedule.setUser(user);
 
-        ZoneId systemZone = ZoneId.systemDefault();
+        ZoneId userZone = ZoneId.of(user.getTimezone());
 
         LocalDateTime localDateTime = LocalDateTime.parse(schedTimeStr);
 
         Instant schedInstant = localDateTime
-                .atZone(systemZone)
+                .atZone(userZone)
                 .toInstant();
 
         schedule.setSchedTime(schedInstant);
@@ -107,13 +108,14 @@ public class ScheduleController {
 
         Instant newStart = schedule.getSchedTime();
         Instant newEnd = newStart.plusSeconds(duration);
+        schedule.setEndTime(newEnd);
 
         List<Schedule> existingSchedules = scheduleRepo.findByUserUsername(username);
 
         for (Schedule existing : existingSchedules) {
 
             Instant existingStart = existing.getSchedTime();
-            Instant existingEnd = existingStart.plusSeconds(existing.getDurationSeconds());
+            Instant existingEnd = existing.getEndTime();
 
             if (newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart)) {
 
