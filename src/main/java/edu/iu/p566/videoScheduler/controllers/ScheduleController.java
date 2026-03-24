@@ -76,57 +76,57 @@ public class ScheduleController {
     }
     @PostMapping()
     public String saveSchedule(
-            @ModelAttribute Schedule schedule,
-            Principal principal,
-            Model model) {
+        @ModelAttribute Schedule schedule,
+        Principal principal,
+        Model model) {
 
-        String username = principal.getName();
-        User user = userRepo.findByUsername(username);
+    String username = principal.getName();
+    User user = userRepo.findByUsername(username);
 
-        user.setTimeZone(schedule.getTimeZone());
-        userRepo.save(user);
+    schedule.setUser(user);
 
-        schedule.setUser(user);
+    if (schedule.getTimeZone() == null || schedule.getTimeZone().isBlank()) {
+        schedule.setTimeZone("America/New_York");
+    }
 
-        long duration = youtubeService.getVideoDuration(schedule.getYoutubeURL());
-        schedule.setDurationSeconds(duration);
+    long duration = youtubeService.getVideoDuration(schedule.getYoutubeURL());
+    schedule.setDurationSeconds(duration);
 
-        LocalDateTime localTime = schedule.getSchedTime();
+    LocalDateTime localTime = schedule.getSchedTime();
+    ZoneId userZone = ZoneId.of(schedule.getTimeZone());
 
-        ZoneId userZone = ZoneId.of(user.getTimeZone());
+    Instant newStart = localTime.atZone(userZone).toInstant();
+    Instant newEnd = newStart.plusSeconds(duration);
 
-        Instant newStart = localTime.atZone(userZone).toInstant();
-        Instant newEnd = newStart.plusSeconds(duration);
+    List<Schedule> existingSchedules = scheduleRepo.findByUserUsername(username);
 
-        List<Schedule> existingSchedules = scheduleRepo.findByUserUsername(username);
+    for (Schedule existing : existingSchedules) {
 
-        for (Schedule existing : existingSchedules) {
+        Instant existingStart = existing.getSchedTimeUtc();
 
-            Instant existingStart = existing.getSchedTimeUtc();
-
-            if (existingStart == null) {
-                existingStart = existing.getSchedTime()
-                        .atZone(userZone)
-                        .toInstant();
-            }
-
-            Instant existingEnd = existingStart.plusSeconds(existing.getDurationSeconds());
-
-            if (newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart)) {
-
-                model.addAttribute("error", "Video overlaps with an existing scheduled video.");
-                model.addAttribute("schedules", existingSchedules);
-                model.addAttribute("schedule", schedule);
-                model.addAttribute("username", username);
-
-                return "schedule";
-            }
+        if (existingStart == null) {
+            existingStart = existing.getSchedTime()
+                    .atZone(ZoneId.of(existing.getTimeZone())) // ✅ FIX HERE TOO
+                    .toInstant();
         }
 
-        schedule.setSchedTimeUtc(newStart);
+        Instant existingEnd = existingStart.plusSeconds(existing.getDurationSeconds());
 
-        scheduleRepo.save(schedule);
+        if (newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart)) {
 
-        return "redirect:/schedule";
+            model.addAttribute("error", "Video overlaps with an existing scheduled video.");
+            model.addAttribute("schedules", existingSchedules);
+            model.addAttribute("schedule", schedule);
+            model.addAttribute("username", username);
+
+            return "schedule";
+        }
     }
+
+    schedule.setSchedTimeUtc(newStart);
+
+    scheduleRepo.save(schedule);
+
+    return "redirect:/schedule";
+}
 }

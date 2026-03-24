@@ -32,9 +32,6 @@ public class RegistrationController {
     public String processRegistration(@ModelAttribute User user) {
         user.setPassword(passEnco.encode(user.getPassword()));
 
-        if (user.getTimeZone() == null || user.getTimeZone().isBlank()) {
-            user.setTimeZone("America/New_York");
-        }
         userRepo.save(user);
         return "redirect:/login";
     }

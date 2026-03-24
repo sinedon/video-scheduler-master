@@ -29,8 +29,6 @@ public class User implements UserDetails {
     @NotNull
     private String password;
 
-    private String timeZone; 
-
     @OneToMany(mappedBy = "user") 
     private List<Schedule> schedules = new ArrayList<>();
 
