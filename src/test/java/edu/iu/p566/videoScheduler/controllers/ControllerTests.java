@@ -98,8 +98,8 @@ public class ControllerTests {
         when(userRepo.findByUsername("test")).thenReturn(user);
 
         when(scheduleRepo
-            .findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
-                eq("test"), any()))
+            .findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
+                eq("test"), any(), any()))
             .thenReturn(Optional.empty());
 
         when(scheduleRepo.findByUserUsername("test")).thenReturn(List.of(existing));
@@ -151,8 +151,8 @@ public class ControllerTests {
         due.setSchedTime(Instant.now().minusSeconds(10)); // already due
 
         when(scheduleRepo
-                .findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
-                        eq("test"), any()))
+            .findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
+                eq("test"), any(), any()))
             .thenReturn(Optional.of(due));
 
         mockMvc.perform(get("/schedule")
@@ -168,8 +168,8 @@ public class ControllerTests {
         due.setSchedTime(Instant.now().minusSeconds(10));
 
         when(scheduleRepo
-                .findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
-                        eq("test"), any()))
+            .findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
+                eq("test"), any(), any()))
             .thenReturn(Optional.of(due));
 
         when(scheduleRepo.findByUserUsername("test")).thenReturn(List.of());
