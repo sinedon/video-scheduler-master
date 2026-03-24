@@ -30,9 +30,6 @@ public class Schedule {
     @NotNull
     private Long durationSeconds;
 
-    @NotNull
-    private Instant endTime;
-
     private boolean played = false;
 
     @ManyToOne

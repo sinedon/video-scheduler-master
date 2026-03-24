@@ -44,6 +44,7 @@ public class ControllerTests {
     @MockBean
     private YoutubeService youtubeService;
 
+
     @Test
     void testLoginPageLoads() throws Exception {
         mockMvc.perform(get("/login"))
@@ -98,7 +99,6 @@ public class ControllerTests {
         Schedule existing = new Schedule();
         existing.setSchedTime(existingStart);
         existing.setDurationSeconds(300L);
-        existing.setEndTime(existingStart.plusSeconds(300L)); // ✅ FIX
 
         when(userRepo.findByUsername("test")).thenReturn(user);
 
@@ -154,7 +154,6 @@ public class ControllerTests {
         Schedule due = new Schedule();
         Instant now = Instant.now();
         due.setSchedTime(now.minusSeconds(60));
-        due.setEndTime(now.plusSeconds(60)); // ✅ ensures it's "active"
 
         when(scheduleRepo
             .findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
@@ -173,7 +172,6 @@ public class ControllerTests {
         Schedule due = new Schedule();
         Instant now = Instant.now();
         due.setSchedTime(now.minusSeconds(60));
-        due.setEndTime(now.plusSeconds(60)); // ✅ FIX
 
         when(scheduleRepo
             .findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
