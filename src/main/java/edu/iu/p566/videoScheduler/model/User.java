@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,6 +29,10 @@ public class User implements UserDetails {
 
     @NotNull
     private String password;
+
+    @NotNull
+    @Column(nullable = false)
+    private String timezone;
 
     @OneToMany(mappedBy = "user") 
     private List<Schedule> schedules = new ArrayList<>();

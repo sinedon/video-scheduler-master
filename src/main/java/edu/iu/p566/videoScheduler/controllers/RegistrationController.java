@@ -15,6 +15,7 @@ import org.springframework.ui.Model;
 @RequestMapping("/register")
 @Controller
 public class RegistrationController {
+
     private UserRepository userRepo;
     private PasswordEncoder passEnco;
 
@@ -28,10 +29,19 @@ public class RegistrationController {
         model.addAttribute("user", new User());
         return "register";
     }
+
     @PostMapping()
     public String processRegistration(@ModelAttribute User user) {
+
+        // ✅ Ensure timezone exists (fallback safety)
+        if (user.getTimezone() == null || user.getTimezone().isBlank()) {
+            user.setTimezone("UTC");
+        }
+
         user.setPassword(passEnco.encode(user.getPassword()));
+
         userRepo.save(user);
+
         return "redirect:/login";
     }
 }

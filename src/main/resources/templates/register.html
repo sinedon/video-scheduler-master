@@ -24,6 +24,19 @@
                 <input type="password" th:field="*{password}" required />
             </div>
 
+            <!-- ✅ NEW FIELD -->
+            <div>
+                <label>Timezone</label>
+                <select th:field="*{timezone}" required>
+                    <option value="">Select your timezone</option>
+                    <option value="America/New_York">Eastern (EST/EDT)</option>
+                    <option value="America/Chicago">Central (CST/CDT)</option>
+                    <option value="America/Denver">Mountain (MST/MDT)</option>
+                    <option value="America/Los_Angeles">Pacific (PST/PDT)</option>
+                    <option value="UTC">UTC</option>
+                </select>
+            </div>
+
             <button type="submit">Register</button>
 
         </form>

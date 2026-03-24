@@ -1,12 +1,16 @@
 package edu.iu.p566.videoScheduler.controllers;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +35,11 @@ public class ScheduleController {
     private final UserRepository userRepo;
     private final YoutubeService youtubeService;
 
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.setDisallowedFields("schedTime");
+    }
+
     @GetMapping()
     public String displaySchedule(Model model, Principal principal,
             @RequestParam(required = false) Boolean override) {
@@ -38,9 +47,9 @@ public class ScheduleController {
         String username = principal.getName();
 
         Optional<Schedule> dueVideo =
-            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndPlayedFalseOrderBySchedTimeAsc(
+            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
                 username,
-                LocalDateTime.now()
+                Instant.now()
             );
 
         if (dueVideo.isPresent() && (override == null || !override)) {
@@ -73,25 +82,38 @@ public class ScheduleController {
         return "redirect:/schedule";
     }
     @PostMapping()
-    public String saveSchedule(@ModelAttribute Schedule schedule, Principal principal, Model model) {
+    public String saveSchedule(@ModelAttribute Schedule schedule,
+                            @RequestParam("schedTime") String schedTimeStr,
+                            Principal principal,
+                            Model model) {
 
         String username = principal.getName();
         User user = userRepo.findByUsername(username);
 
         schedule.setUser(user);
 
+        ZoneId userZone = ZoneId.of(user.getTimezone());
+
+        LocalDateTime localDateTime = LocalDateTime.parse(schedTimeStr);
+
+        Instant schedInstant = localDateTime
+                .atZone(userZone)
+                .toInstant();
+
+        schedule.setSchedTime(schedInstant);
+
         long duration = youtubeService.getVideoDuration(schedule.getYoutubeURL());
         schedule.setDurationSeconds(duration);
 
-        LocalDateTime newStart = schedule.getSchedTime();
-        LocalDateTime newEnd = newStart.plusSeconds(duration);
+        Instant newStart = schedule.getSchedTime();
+        Instant newEnd = newStart.plusSeconds(duration);
 
         List<Schedule> existingSchedules = scheduleRepo.findByUserUsername(username);
 
         for (Schedule existing : existingSchedules) {
 
-            LocalDateTime existingStart = existing.getSchedTime();
-            LocalDateTime existingEnd = existingStart.plusSeconds(existing.getDurationSeconds());
+            Instant existingStart = existing.getSchedTime();
+            Instant existingEnd = existingStart.plusSeconds(existing.getDurationSeconds());
 
             if (newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart)) {
 

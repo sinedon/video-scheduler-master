@@ -1,6 +1,6 @@
 package edu.iu.p566.videoScheduler.data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,8 +10,8 @@ import edu.iu.p566.videoScheduler.model.Schedule;
 
 public interface ScheduleRepository extends CrudRepository<Schedule,Long> {
     List<Schedule> findByUserUsername(String username);
-    Optional<Schedule> findFirstByUserUsernameAndSchedTimeLessThanEqualAndPlayedFalseOrderBySchedTimeAsc(
+    Optional<Schedule> findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
         String username,
-        LocalDateTime time
+        Instant time
     );
 }

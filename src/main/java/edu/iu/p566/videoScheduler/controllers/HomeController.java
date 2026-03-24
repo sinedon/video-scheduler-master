@@ -2,6 +2,7 @@ package edu.iu.p566.videoScheduler.controllers;
 
 import java.security.Principal;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -25,8 +26,8 @@ public class HomeController {
         String username = principal.getName();
 
         Optional<Schedule> video =
-            schedRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndPlayedFalseOrderBySchedTimeAsc(
-                username, LocalDateTime.now());
+            schedRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
+                username, Instant.now());
 
         if (video.isPresent()) {
 
@@ -36,7 +37,7 @@ public class HomeController {
 
             long offset = Duration.between(
                 v.getSchedTime(),
-                LocalDateTime.now()
+                Instant.now()
             ).getSeconds();
 
             if (offset < 0) {

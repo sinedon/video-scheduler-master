@@ -1,6 +1,6 @@
 package edu.iu.p566.videoScheduler.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,7 +25,7 @@ public class Schedule {
     private String youtubeURL;
 
     @NotNull
-    private LocalDateTime schedTime;
+    private Instant schedTime;
 
     @NotNull
     private Long durationSeconds;
