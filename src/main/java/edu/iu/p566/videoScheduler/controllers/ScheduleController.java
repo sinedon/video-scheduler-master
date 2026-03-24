@@ -46,6 +46,9 @@ public class ScheduleController {
 
         String username = principal.getName();
 
+        User user = userRepo.findByUsername(username);
+        ZoneId zoneId = ZoneId.of(user.getTimezone());
+
         Optional<Schedule> dueVideo =
             scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
                 username,
@@ -61,6 +64,7 @@ public class ScheduleController {
         model.addAttribute("schedules", schedules);
         model.addAttribute("username", username);
         model.addAttribute("schedule", new Schedule());
+        model.addAttribute("zoneId", zoneId);
 
         return "schedule";
     }
