@@ -49,6 +49,7 @@
 
         <hr>
     </div>
+
     <div class="scheduler-list">
         <h2>Your Scheduled Videos</h2>
 
@@ -57,25 +58,36 @@
                 <tr>
                     <th>Video Name</th>
                     <th>YouTube URL</th>
-                    <th>Scheduled Time</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
                     <th>Delete</th>
                 </tr>
             </thead>
+
             <tbody>
                 <tr th:each="video : ${schedules}">
+                    
                     <td th:text="${video.videoName}"></td>
+
                     <td>
                         <a th:href="${video.youtubeURL}" 
                            th:text="${video.youtubeURL}" 
                            target="_blank">
                         </a>
                     </td>
-                    <td th:text="${video.schedTime}"></td>
+
+                    <!-- Start Time (converted to user's timezone) -->
+                    <td th:text="${#temporals.format(video.schedTime.atZone(zoneId), 'MMM dd, yyyy hh:mm a')}"></td>
+
+                    <!-- End Time (converted to user's timezone) -->
+                    <td th:text="${#temporals.format(video.endTime.atZone(zoneId), 'MMM dd, yyyy hh:mm a')}"></td>
+
                     <td>
                         <form th:action="@{/schedule/delete/{id}(id=${video.videoID})}" method="post">
                             <button type="submit">Delete</button>
                         </form>
                     </td>
+
                 </tr>
             </tbody>
         </table>
