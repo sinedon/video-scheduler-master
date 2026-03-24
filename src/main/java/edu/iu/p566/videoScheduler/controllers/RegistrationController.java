@@ -33,7 +33,6 @@ public class RegistrationController {
     @PostMapping()
     public String processRegistration(@ModelAttribute User user) {
 
-        // ✅ Ensure timezone exists (fallback safety)
         if (user.getTimezone() == null || user.getTimezone().isBlank()) {
             user.setTimezone("UTC");
         }
