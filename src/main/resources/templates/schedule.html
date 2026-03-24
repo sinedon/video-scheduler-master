@@ -25,7 +25,8 @@
             <p th:text="${error}"></p>
         </div>
 
-        <form th:action="@{/schedule}" 
+        <form id="scheduleForm"
+              th:action="@{/schedule}" 
               th:object="${schedule}" 
               method="post">
 
@@ -41,7 +42,9 @@
 
             <div>
                 <label>Schedule Time</label>
-                <input type="datetime-local" name="schedTime" required />
+                <input type="datetime-local" id="schedTimeInput" required />
+                
+                <input type="hidden" name="schedTime" id="schedTimeUTC" />
             </div>
 
             <button type="submit">Schedule Video</button>
@@ -49,6 +52,7 @@
 
         <hr>
     </div>
+
     <div class="scheduler-list">
         <h2>Your Scheduled Videos</h2>
 
@@ -70,7 +74,7 @@
                            target="_blank">
                         </a>
                     </td>
-                    <td th:text="${video.schedTime}"></td>
+                    <td th:text="${video.displayTime}"></td>
                     <td>
                         <form th:action="@{/schedule/delete/{id}(id=${video.videoID})}" method="post">
                             <button type="submit">Delete</button>
@@ -81,6 +85,19 @@
         </table>
     </div>
 </div>
+
+<script>
+document.getElementById("scheduleForm").addEventListener("submit", function(e) {
+
+    const localValue = document.getElementById("schedTimeInput").value;
+
+    if (!localValue) return;
+
+    const utcValue = new Date(localValue).toISOString();
+
+    document.getElementById("schedTimeUTC").value = utcValue;
+});
+</script>
 
 </body>
 </html>

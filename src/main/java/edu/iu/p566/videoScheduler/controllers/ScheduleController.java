@@ -2,8 +2,8 @@ package edu.iu.p566.videoScheduler.controllers;
 
 import java.security.Principal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,11 +47,13 @@ public class ScheduleController {
 
         String username = principal.getName();
 
+        Instant now = Instant.now();
+
         Optional<Schedule> dueVideo =
             scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanOrderBySchedTimeAsc(
                 username,
-                Instant.now(),
-                Instant.now()
+                now,
+                now
             );
 
         if (dueVideo.isPresent() && (override == null || !override)) {
@@ -59,6 +61,22 @@ public class ScheduleController {
         }
 
         List<Schedule> schedules = scheduleRepo.findByUserUsername(username);
+
+        User user = userRepo.findByUsername(username);
+        ZoneId userZone = ZoneId.of(user.getTimezone());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        for (Schedule sched : schedules) {
+            if (sched.getSchedTime() != null) {
+                String localTime = sched.getSchedTime()
+                        .atZone(userZone)
+                        .toLocalDateTime()
+                        .format(formatter);
+
+                sched.setDisplayTime(localTime);
+            }
+        }
 
         model.addAttribute("schedules", schedules);
         model.addAttribute("username", username);
@@ -94,13 +112,7 @@ public class ScheduleController {
 
         schedule.setUser(user);
 
-        ZoneId userZone = ZoneId.of(user.getTimezone());
-        LocalDateTime localDateTime = LocalDateTime.parse(schedTimeStr);
-
-        Instant startTime = localDateTime
-                .atZone(userZone)
-                .toInstant();
-
+        Instant startTime = Instant.parse(schedTimeStr);
         schedule.setSchedTime(startTime);
 
         long duration = youtubeService.getVideoDuration(schedule.getYoutubeURL());
@@ -114,9 +126,23 @@ public class ScheduleController {
         for (Schedule existing : existingSchedules) {
 
             Instant existingStart = existing.getSchedTime();
-            Instant existingEnd = existing.getEndTime(); // ✅ use stored endTime
+            Instant existingEnd = existing.getEndTime();
 
             if (startTime.isBefore(existingEnd) && endTime.isAfter(existingStart)) {
+
+                ZoneId userZone = ZoneId.of(user.getTimezone());
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+                for (Schedule sched : existingSchedules) {
+                    if (sched.getSchedTime() != null) {
+                        String localTime = sched.getSchedTime()
+                                .atZone(userZone)
+                                .toLocalDateTime()
+                                .format(formatter);
+
+                        sched.setDisplayTime(localTime);
+                    }
+                }
 
                 model.addAttribute("error", "Video overlaps with an existing scheduled video.");
                 model.addAttribute("schedules", existingSchedules);
