@@ -40,6 +40,12 @@ public class ScheduleController {
         binder.setDisallowedFields("schedTime");
     }
 
+    @ModelAttribute("zoneId")
+    public ZoneId zoneId(Principal principal) {
+        User user = userRepo.findByUsername(principal.getName());
+        return ZoneId.of(user.getTimezone());
+    }
+
     @GetMapping()
     public String displaySchedule(Model model, Principal principal,
             @RequestParam(required = false) Boolean override) {
