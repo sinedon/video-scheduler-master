@@ -24,9 +24,12 @@ public class HomeController {
 
         String username = principal.getName();
 
+        Instant now = Instant.now();
+
         Optional<Schedule> video =
-            schedRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
-                username, Instant.now());
+            schedRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
+                username, now, now
+            );
 
         if (video.isPresent()) {
 
@@ -39,7 +42,7 @@ public class HomeController {
                 Instant.now()
             ).getSeconds();
 
-            if (offset < 0) {
+            if (offset < 30) {
                 offset = 0;
             }
 

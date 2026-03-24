@@ -46,10 +46,13 @@ public class ScheduleController {
 
         String username = principal.getName();
 
+        Instant now = Instant.now();
+
         Optional<Schedule> dueVideo =
-            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
+            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
                 username,
-                Instant.now()
+                now,
+                now
             );
 
         if (dueVideo.isPresent() && (override == null || !override)) {
