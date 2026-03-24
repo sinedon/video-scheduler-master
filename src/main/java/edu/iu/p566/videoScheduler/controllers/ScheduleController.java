@@ -116,6 +116,7 @@ public class ScheduleController {
 
         Instant newStart = schedule.getSchedTime();
         Instant newEnd = newStart.plusSeconds(duration);
+        schedule.setEndTime(newEnd);
 
         List<Schedule> existingSchedules = scheduleRepo.findByUserUsername(username);
 
