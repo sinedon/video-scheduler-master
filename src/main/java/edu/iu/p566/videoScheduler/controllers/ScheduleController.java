@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/schedule")
 @RequiredArgsConstructor
 public class ScheduleController {
+
     private final ScheduleRepository scheduleRepo;
     private final UserRepository userRepo;
     private final YoutubeService youtubeService;
@@ -49,10 +50,13 @@ public class ScheduleController {
         User user = userRepo.findByUsername(username);
         ZoneId zoneId = ZoneId.of(user.getTimezone());
 
+        Instant now = Instant.now();
+
         Optional<Schedule> dueVideo =
-            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
+            scheduleRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
                 username,
-                Instant.now()
+                now,
+                now
             );
 
         if (dueVideo.isPresent() && (override == null || !override)) {
@@ -74,22 +78,23 @@ public class ScheduleController {
 
         Optional<Schedule> scheduleOpt = scheduleRepo.findById(id);
 
-        if(scheduleOpt.isPresent()) {
+        if (scheduleOpt.isPresent()) {
 
             Schedule sched = scheduleOpt.get();
 
-            if(sched.getUser().getUsername().equals(principal.getName())) {
+            if (sched.getUser().getUsername().equals(principal.getName())) {
                 scheduleRepo.deleteById(id);
             }
         }
 
         return "redirect:/schedule";
     }
+
     @PostMapping()
     public String saveSchedule(@ModelAttribute Schedule schedule,
-                            @RequestParam("schedTime") String schedTimeStr,
-                            Principal principal,
-                            Model model) {
+                              @RequestParam("schedTime") String schedTimeStr,
+                              Principal principal,
+                              Model model) {
 
         String username = principal.getName();
         User user = userRepo.findByUsername(username);
@@ -111,13 +116,15 @@ public class ScheduleController {
 
         Instant newStart = schedule.getSchedTime();
         Instant newEnd = newStart.plusSeconds(duration);
+        schedule.setEndTime(newEnd);
 
         List<Schedule> existingSchedules = scheduleRepo.findByUserUsername(username);
 
         for (Schedule existing : existingSchedules) {
 
             Instant existingStart = existing.getSchedTime();
-            Instant existingEnd = existingStart.plusSeconds(existing.getDurationSeconds());
+
+            Instant existingEnd = existing.getEndTime();
 
             if (newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart)) {
 

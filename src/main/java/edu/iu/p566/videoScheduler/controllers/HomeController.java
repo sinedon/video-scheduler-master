@@ -24,9 +24,14 @@ public class HomeController {
 
         String username = principal.getName();
 
+        Instant now = Instant.now();
+
         Optional<Schedule> video =
-            schedRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualOrderBySchedTimeAsc(
-                username, Instant.now());
+            schedRepo.findFirstByUserUsernameAndSchedTimeLessThanEqualAndEndTimeGreaterThanEqualOrderBySchedTimeAsc(
+                username,
+                now,
+                now
+            );
 
         if (video.isPresent()) {
 
@@ -36,11 +41,16 @@ public class HomeController {
 
             long offset = Duration.between(
                 v.getSchedTime(),
-                Instant.now()
+                now
             ).getSeconds();
 
             if (offset < 30) {
                 offset = 0;
+            }
+
+            long maxDuration = v.getDurationSeconds();
+            if (offset > maxDuration) {
+                offset = maxDuration;
             }
 
             model.addAttribute("startOffset", offset);
