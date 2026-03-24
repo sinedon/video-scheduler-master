@@ -92,12 +92,12 @@ public class ScheduleController {
 
         schedule.setUser(user);
 
-        ZoneId userZone = ZoneId.of(user.getTimezone());
+        ZoneId systemZone = ZoneId.systemDefault();
 
         LocalDateTime localDateTime = LocalDateTime.parse(schedTimeStr);
 
         Instant schedInstant = localDateTime
-                .atZone(userZone)
+                .atZone(systemZone)
                 .toInstant();
 
         schedule.setSchedTime(schedInstant);
