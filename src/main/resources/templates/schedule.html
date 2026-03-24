@@ -73,7 +73,10 @@
                         </a>
                     </td>
 
-                    <td th:text="${#temporals.format(video.schedTime.atZone(zoneId), 'MMM dd, yyyy hh:mm a')}"></td>
+                    <td th:text="${zoneId != null 
+                        ? #temporals.format(video.schedTime.atZone(zoneId), 'MMM dd, yyyy hh:mm a') 
+                        : video.schedTime}">
+                    </td>
 
                     <td>
                         <form th:action="@{/schedule/delete/{id}(id=${video.videoID})}" method="post">
@@ -87,4 +90,5 @@
 </div>
 
 </body>
+
 </html>
